@@ -1,4 +1,5 @@
 import "./lib/canvas.js";
+import { grid } from "./lib/canvas.js";
 import { createDungeon } from "./lib/dungeon.js";
 import { Move } from "./state/components.js";
 import { player } from "./state/ecs.js";
@@ -6,9 +7,14 @@ import { movement } from "./systems/movement.js";
 import { render } from "./systems/render.js";
 
 //init game map and player position
-const dungeon = createDungeon();
-player.position.x = dungeon.center.x;
-player.position.y = dungeon.center.y;
+const dungeon = createDungeon({
+  x: grid.map.x,
+  y: grid.map.y,
+  width: grid.map.width,
+  height: grid.map.height,
+});
+player.position.x = dungeon.rooms[0].center.x;
+player.position.y = dungeon.rooms[0].center.y;
 
 render();
 
