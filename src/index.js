@@ -1,10 +1,11 @@
-import "./lib/canvas.js";
-import { grid } from "./lib/canvas.js";
-import { createDungeon } from "./lib/dungeon.js";
-import { Move } from "./state/components.js";
-import { player } from "./state/ecs.js";
-import { movement } from "./systems/movement.js";
-import { render } from "./systems/render.js";
+import "./lib/canvas";
+import { grid } from "./lib/canvas";
+import { createDungeon } from "./lib/dungeon";
+import { Move, Position } from "./state/components";
+import { player } from "./state/ecs";
+import { fov } from "./systems/fov";
+import { movement } from "./systems/movement";
+import { render } from "./systems/render";
 
 //init game map and player position
 const dungeon = createDungeon({
@@ -13,9 +14,13 @@ const dungeon = createDungeon({
   width: grid.map.width,
   height: grid.map.height,
 });
-player.position.x = dungeon.rooms[0].center.x;
-player.position.y = dungeon.rooms[0].center.y;
 
+player.add(Position, {
+  x: dungeon.rooms[0].center.x,
+  y: dungeon.rooms[0].center.y,
+});
+
+fov();
 render();
 
 document.addEventListener("keydown", (e) => {
@@ -29,5 +34,6 @@ const processUserInput = (userInput) => {
   if (userInput === "ArrowLeft") player.add(Move, { x: -1, y: 0 });
 
   movement();
+  fov();
   render();
 };
