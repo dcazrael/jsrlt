@@ -1,11 +1,21 @@
-import "./lib/canvas";
-import { grid } from "./lib/canvas";
-import { createDungeon } from "./lib/dungeon";
-import { Move, Position } from "./state/components";
-import { player } from "./state/ecs";
-import { fov } from "./systems/fov";
-import { movement } from "./systems/movement";
-import { render } from "./systems/render";
+import { sample, times } from 'lodash';
+import './lib/canvas';
+import { grid } from './lib/canvas';
+import { createDungeon } from './lib/dungeon';
+import {
+  Ai,
+  Appearance,
+  Description,
+  IsBlocking,
+  Layer400,
+  Move,
+  Position,
+} from './state/components';
+import world, { player } from './state/ecs';
+import { ai } from './systems/ai';
+import { fov } from './systems/fov';
+import { movement } from './systems/movement';
+import { render } from './systems/render';
 
 //init game map and player position
 const dungeon = createDungeon({
@@ -20,20 +30,65 @@ player.add(Position, {
   y: dungeon.rooms[0].center.y,
 });
 
+const openTiles = Object.values(dungeon.tiles).filter(
+  (x) => x.sprite === 'FLOOR'
+);
+
+times(5, () => {
+  const tile = sample(openTiles);
+
+  const goblin = world.createEntity();
+  goblin.add(Ai);
+  goblin.add(Appearance, { char: 'g', color: 'green' });
+  goblin.add(Description, { name: 'goblin' });
+  goblin.add(IsBlocking);
+  goblin.add(Layer400);
+  goblin.add(Position, { x: tile.x, y: tile.y });
+});
+
 fov();
 render();
 
-document.addEventListener("keydown", (e) => {
-  processUserInput(e.key);
+let userInput = null;
+let playerTurn = true;
+
+document.addEventListener('keydown', (ev) => {
+  userInput = ev.key;
 });
 
-const processUserInput = (userInput) => {
-  if (userInput === "ArrowUp") player.add(Move, { x: 0, y: -1 });
-  if (userInput === "ArrowRight") player.add(Move, { x: 1, y: 0 });
-  if (userInput === "ArrowDown") player.add(Move, { x: 0, y: 1 });
-  if (userInput === "ArrowLeft") player.add(Move, { x: -1, y: 0 });
+const processUserInput = () => {
+  if (userInput === 'ArrowUp') player.add(Move, { x: 0, y: -1 });
+  if (userInput === 'ArrowRight') player.add(Move, { x: 1, y: 0 });
+  if (userInput === 'ArrowDown') player.add(Move, { x: 0, y: 1 });
+  if (userInput === 'ArrowLeft') player.add(Move, { x: -1, y: 0 });
 
-  movement();
-  fov();
-  render();
+  userInput = null;
 };
+
+const update = () => {
+  if (playerTurn && userInput) {
+    console.log('I am @, hear me roar.');
+    processUserInput();
+    movement();
+    fov();
+    render();
+
+    playerTurn = false;
+  }
+
+  if (!playerTurn) {
+    ai();
+    movement();
+    fov();
+    render();
+
+    playerTurn = true;
+  }
+};
+
+const gameLoop = () => {
+  update();
+  requestAnimationFrame(gameLoop);
+};
+
+requestAnimationFrame(gameLoop);
