@@ -7,6 +7,7 @@ import { readCacheSet } from './state/cache';
 import { ActiveEffects, Effects, Move, Position } from './state/components';
 import world, { addLog } from './state/ecs';
 import { ai } from './systems/ai';
+import { animation } from './systems/animation';
 import { effects } from './systems/effects';
 import { fov } from './systems/fov';
 import { movement } from './systems/movement';
@@ -80,7 +81,7 @@ const processUserInput = () => {
           if (entity.isPickup) {
             pickupFound = true;
             player.fireEvent('pick-up', entity);
-            addLog(`You pickup a ${entity.description.name}`);
+            addLog(`You pick up a ${entity.description.name}`);
           }
         }
       );
@@ -91,6 +92,18 @@ const processUserInput = () => {
 
     if (userInput === 'i') {
       gameState = 'INVENTORY';
+    }
+
+    if (userInput === 'z') {
+      gameState = 'TARGETING';
+    }
+
+    userInput = null;
+  }
+
+  if (gameState === 'TARGETING') {
+    if (userInput === 'z' || userInput === 'Escape') {
+      gameState = 'GAME';
     }
 
     userInput = null;
@@ -129,6 +142,8 @@ const processUserInput = () => {
 
         if (selectedInventoryIndex > player.inventory.list.length - 1)
           selectedInventoryIndex = player.inventory.list.length - 1;
+
+        gameState = 'GAME';
       }
     }
 
@@ -144,8 +159,16 @@ const processUserInput = () => {
 };
 
 const update = () => {
+  animation();
+
   if (player.isDead) {
     return;
+  }
+
+  if (playerTurn && userInput && gameState === 'TARGETING') {
+    processUserInput();
+    render(player);
+    playerTurn = true;
   }
 
   if (playerTurn && userInput && gameState === 'INVENTORY') {

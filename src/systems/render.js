@@ -35,8 +35,12 @@ const layer400Entities = world.createQuery({
   all: [Position, Appearance, Layer400, IsInFov],
 });
 
-export const render = (player) => {
-  clearCanvas();
+const clearMap = () => {
+  clearCanvas(grid.map.x - 1, grid.map.y, grid.map.width + 1, grid.map.height);
+};
+
+export const renderMap = (player) => {
+  clearMap();
 
   layer100Entities.get().forEach((entity) => {
     if (entity.isInFov) {
@@ -47,7 +51,11 @@ export const render = (player) => {
   });
 
   layer300Entities.get().forEach((entity) => {
-    drawCell(entity);
+    if (entity.isInFov) {
+      drawCell(entity);
+    } else {
+      drawCell(entity, { color: '#333' });
+    }
   });
 
   layer400Entities.get().forEach((entity) => {
@@ -57,6 +65,19 @@ export const render = (player) => {
       drawCell(entity, { color: '#100' });
     }
   });
+};
+
+const clearPlayerHud = () => {
+  clearCanvas(
+    grid.playerHud.x,
+    grid.playerHud.y,
+    grid.playerHud.width + 1,
+    grid.playerHud.height
+  );
+};
+
+const renderPlayerHud = (player) => {
+  clearPlayerHud();
 
   drawText({
     text: `${player.appearance.char} ${player.description.name}`,
@@ -85,6 +106,19 @@ export const render = (player) => {
       y: grid.playerHud.y + 1,
     });
   }
+};
+
+const clearMessageLog = () => {
+  clearCanvas(
+    grid.messageLog.x,
+    grid.messageLog.y,
+    grid.messageLog.width + 1,
+    grid.messageLog.height
+  );
+};
+
+const renderMessageLog = () => {
+  clearMessageLog();
 
   drawText({
     text: messageLog[2],
@@ -109,49 +143,6 @@ export const render = (player) => {
     x: grid.messageLog.x,
     y: grid.messageLog.y + 2,
   });
-
-  if (gameState === 'INVENTORY') {
-    // translucent to obscure the game map
-    drawRect(0, 0, grid.width, grid.height, 'rgba(0,0,0,0.65)');
-
-    drawText({
-      text: 'INVENTORY',
-      background: 'black',
-      color: 'white',
-      x: grid.inventory.x,
-      y: grid.inventory.y,
-    });
-
-    drawText({
-      text: '(c)Consume (d)Drop',
-      background: 'black',
-      color: '#666',
-      x: grid.inventory.x,
-      y: grid.inventory.y + 1,
-    });
-
-    if (player.inventory.list.length) {
-      player.inventory.list.forEach((entity, idx) => {
-        drawText({
-          text: `${idx === selectedInventoryIndex ? '*' : ' '}${
-            entity.description.name
-          }`,
-          background: 'black',
-          color: 'white',
-          x: grid.inventory.x,
-          y: grid.inventory.y + 3 + idx,
-        });
-      });
-    } else {
-      drawText({
-        text: '-empty-',
-        background: 'black',
-        color: '#666',
-        x: grid.inventory.x,
-        y: grid.inventory.y + 3,
-      });
-    }
-  }
 };
 
 //info bar on mouseover
@@ -164,9 +155,10 @@ const clearInfoBar = () => {
   });
 };
 
-const canvas = document.querySelector('canvas');
-canvas.onmousemove = throttle((e) => {
-  const [x, y] = pxToCell(e);
+const renderInfoBar = (mPos) => {
+  clearInfoBar();
+
+  const { x, y } = mPos;
   const locId = toLocId({ x, y });
 
   const esAtLoc = readCacheSet('entitiesAtLocation', locId) || [];
@@ -175,6 +167,16 @@ canvas.onmousemove = throttle((e) => {
   clearInfoBar();
 
   if (entitiesAtLoc) {
+    if (entitiesAtLoc.some((eId) => world.getEntity(eId).isRevealed)) {
+      drawCell({
+        appearance: {
+          char: '',
+          background: 'rgba(255,255,255, 0.5)',
+        },
+        position: { x, y },
+      });
+    }
+
     entitiesAtLoc
       .filter((eId) => {
         const entity = world.getEntity(eId);
@@ -206,5 +208,94 @@ canvas.onmousemove = throttle((e) => {
           });
         }
       });
+  }
+};
+
+const renderInventory = (player) => {
+  // translucent to obscure the game map
+  drawRect(0, 0, grid.width, grid.height, 'rgba(0,0,0,0.65)');
+
+  drawText({
+    text: 'INVENTORY',
+    background: 'black',
+    color: 'white',
+    x: grid.inventory.x,
+    y: grid.inventory.y,
+  });
+
+  drawText({
+    text: '(c)Consume (d)Drop',
+    background: 'black',
+    color: '#666',
+    x: grid.inventory.x,
+    y: grid.inventory.y + 1,
+  });
+
+  if (player.inventory.list.length) {
+    player.inventory.list.forEach((entity, idx) => {
+      drawText({
+        text: `${idx === selectedInventoryIndex ? '*' : ' '}${
+          entity.description.name
+        }`,
+        background: 'black',
+        color: 'white',
+        x: grid.inventory.x,
+        y: grid.inventory.y + 3 + idx,
+      });
+    });
+  } else {
+    drawText({
+      text: '-empty-',
+      background: 'black',
+      color: '#666',
+      x: grid.inventory.x,
+      y: grid.inventory.y + 3,
+    });
+  }
+};
+
+const renderTargeting = (mPos) => {
+  const { x, y } = mPos;
+  const locId = toLocId({ x, y });
+  const esAtLoc = readCacheSet('entitiesAtLocation', locId) || [];
+  const entitiesAtLoc = [...esAtLoc];
+
+  clearInfoBar();
+
+  if (entitiesAtLoc) {
+    if (entitiesAtLoc.some((eId) => world.getEntity(eId).isRevealed)) {
+      drawCell({
+        appearance: {
+          char: '',
+          background: 'rgba(74, 232, 218, 0.5)',
+        },
+        position: { x, y },
+      });
+    }
+  }
+};
+
+export const render = (player) => {
+  renderMap();
+  renderPlayerHud(player);
+  renderMessageLog();
+
+  if (gameState === 'INVENTORY') {
+    renderInventory(player);
+  }
+};
+
+const canvas = document.querySelector('canvas');
+canvas.onmousemove = throttle((e) => {
+  if (gameState === 'GAME') {
+    const [x, y] = pxToCell(e);
+    renderMap();
+    renderInfoBar({ x, y });
+  }
+
+  if (gameState === 'TARGETING') {
+    const [x, y] = pxToCell(e);
+    renderMap();
+    renderTargeting({ x, y });
   }
 }, 100);

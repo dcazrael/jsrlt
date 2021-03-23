@@ -1,4 +1,4 @@
-import { ActiveEffects } from '../state/components';
+import { ActiveEffects, Animate } from '../state/components';
 import world from '../state/ecs';
 
 const activeEffectsEntities = world.createQuery({
@@ -15,6 +15,7 @@ export const effects = () => {
           entity[c.component].current = entity[c.component].max;
         }
       }
+      entity.add(Animate, { ...c.animate });
 
       c.destroy();
     });

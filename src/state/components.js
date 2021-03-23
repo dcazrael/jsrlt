@@ -11,6 +11,22 @@ export class Appearance extends Component {
   };
 }
 
+// animations
+export class Animate extends Component {
+  static allowMultiple = true;
+  static properties = {
+    startTime: null,
+    duration: 250,
+    char: '',
+    color: '',
+  };
+
+  onSetStartTime(evt) {
+    this.startTime = evt.data.time;
+    evt.handle();
+  }
+}
+
 // misc
 export class Description extends Component {
   static properties = { name: 'No Name' };
@@ -19,12 +35,20 @@ export class Description extends Component {
 // effects
 export class ActiveEffects extends Component {
   static allowMultiple = true;
-  static properties = { component: '', delta: '' };
+  static properties = {
+    component: '',
+    delta: '',
+    animate: { char: '', color: '' },
+  };
 }
 
 export class Effects extends Component {
   static allowMultiple = true;
-  static properties = { component: '', delta: '' };
+  static properties = {
+    component: '',
+    delta: '',
+    animate: { char: '', color: '' },
+  };
 }
 
 // status
@@ -72,6 +96,7 @@ export class Inventory extends Component {
 
     if (evt.data.position) {
       evt.data.remove(evt.data.position);
+      evt.data.remove(evt.data.isPickup);
     }
   }
 
@@ -79,6 +104,7 @@ export class Inventory extends Component {
     console.log(evt);
     remove(this.list, (x) => x.id === evt.data.id);
     evt.data.add(Position, this.entity.position);
+    evt.data.add(IsPickup);
   }
 }
 

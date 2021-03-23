@@ -69,8 +69,15 @@ export const drawChar = ({ char, color, position }) => {
   );
 };
 
-export const clearCanvas = () =>
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+export const clearCanvas = (x, y, w, h) => {
+  const posX = x * cellWidth;
+  const posY = y * cellHeight;
+
+  const width = cellWidth * w;
+  const height = cellHeight * h;
+
+  ctx.clearRect(posX, posY, width, height);
+};
 
 const drawBackground = ({ color, position }) => {
   if (color === 'transparent') return;

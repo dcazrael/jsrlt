@@ -111,7 +111,11 @@ export const HealthPotion = {
     },
     {
       type: 'Effects',
-      properties: { component: 'health', delta: 5 },
+      properties: {
+        component: 'health',
+        delta: 5,
+        animate: { color: '#ff0000', char: '♥' },
+      },
     },
   ],
 };
