@@ -18,7 +18,7 @@ import {
   Layer300,
   Layer400,
   Position,
-} from '../state/components';
+} from '../state/components/';
 import world, { messageLog } from '../state/ecs';
 
 const layer100Entities = world.createQuery({
@@ -231,16 +231,17 @@ const renderInventory = (player) => {
     y: grid.inventory.y + 1,
   });
 
-  if (player.inventory.list.length) {
-    player.inventory.list.forEach((entity, idx) => {
+  if (player.inventory.inventoryItemIds.length) {
+    player.inventory.inventoryItemIds.forEach((itemId, index) => {
+      const entity = world.getEntity(itemId);
       drawText({
-        text: `${idx === selectedInventoryIndex ? '*' : ' '}${
+        text: `${index === selectedInventoryIndex ? '*' : ' '}${
           entity.description.name
         }`,
         background: 'black',
         color: 'white',
         x: grid.inventory.x,
-        y: grid.inventory.y + 3 + idx,
+        y: grid.inventory.y + 3 + index,
       });
     });
   } else {

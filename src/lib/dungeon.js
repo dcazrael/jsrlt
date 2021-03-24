@@ -1,5 +1,5 @@
 import { random, times } from 'lodash';
-import { Position } from '../state/components';
+import { Position } from '../state/components/';
 import world from '../state/ecs';
 import { rectangle, rectsIntersect } from './grid';
 

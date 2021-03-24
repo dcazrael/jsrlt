@@ -1,6 +1,10 @@
 import { Component } from 'geotic';
-import { remove } from 'lodash';
-import { addCacheSet } from './cache';
+import {
+  getEntityArrayRef,
+  getEntityRef,
+  setEntityRef,
+} from '../../utils/ecs-refs';
+import { addCacheSet, deleteCacheSet } from '../cache';
 
 export class Ai extends Component {}
 export class Appearance extends Component {
@@ -23,7 +27,6 @@ export class Animate extends Component {
 
   onSetStartTime(evt) {
     this.startTime = evt.data.time;
-    evt.handle();
   }
 }
 
@@ -33,23 +36,9 @@ export class Description extends Component {
 }
 
 // effects
-export class ActiveEffects extends Component {
-  static allowMultiple = true;
-  static properties = {
-    component: '',
-    delta: '',
-    animate: { char: '', color: '' },
-  };
-}
-
-export class Effects extends Component {
-  static allowMultiple = true;
-  static properties = {
-    component: '',
-    delta: '',
-    animate: { char: '', color: '' },
-  };
-}
+export { ActiveEffects, Effects } from './Effects';
+//status effect
+export { Frozen, Paralyzed, Poisoned } from './StatusEffects';
 
 // status
 export class IsBlocking extends Component {}
@@ -78,6 +67,19 @@ export class Health extends Component {
 
   onTakeDamage(evt) {
     this.current -= evt.data.amount;
+
+    if (this.current <= 0) {
+      this.entity.appearance.char = '%';
+      if (this.entity.has(Ai)) {
+        this.entity.remove(this.entity.ai);
+      }
+      if (this.entity.has(IsBlocking)) {
+        this.entity.remove(this.entity.isBlocking);
+      }
+      this.entity.add(IsDead);
+      this.entity.remove(this.entity.layer400);
+      this.entity.add(Layer300);
+    }
     evt.handle();
   }
 }
@@ -85,14 +87,40 @@ export class Power extends Component {
   static properties = { max: 5, current: 5 };
 }
 
+export class RequiresTarget extends Component {
+  static properties = {
+    acquired: 'RANDOM',
+  };
+}
+
+export class Target extends Component {
+  static properties = { locId: '' };
+}
+
+export class TargetingItem extends Component {
+  static properties = { itemId: 0 };
+
+  get item() {
+    return getEntityRef(this, 'itemId');
+  }
+
+  set item(value) {
+    setEntityRef(this, 'itemId', value);
+  }
+}
+
 // inventory
 export class Inventory extends Component {
   static properties = {
-    list: [],
+    inventoryItemIds: [],
   };
 
+  get inventoryItems() {
+    return getEntityArrayRef(this, 'inventoryItemIds');
+  }
+
   onPickUp(evt) {
-    this.list.push(evt.data);
+    this.inventoryItemIds.push(evt.data.id);
 
     if (evt.data.position) {
       evt.data.remove(evt.data.position);
@@ -101,10 +129,19 @@ export class Inventory extends Component {
   }
 
   onDrop(evt) {
-    console.log(evt);
-    remove(this.list, (x) => x.id === evt.data.id);
+    this.inventoryItemIds = this.inventoryItemIds.filter((inventoryItemId) => {
+      if (inventoryItemId !== evt.data.id) return inventoryItemId;
+    });
     evt.data.add(Position, this.entity.position);
     evt.data.add(IsPickup);
+  }
+
+  onConsume(evt) {
+    this.inventoryItemIds = this.inventoryItemIds.filter((inventoryItemId) => {
+      if (inventoryItemId !== evt.data.id) return inventoryItemId;
+    });
+
+    evt.data.destroy();
   }
 }
 
@@ -113,11 +150,17 @@ export class Position extends Component {
   static properties = { x: 0, y: 0 };
   onAttached() {
     const locId = `${this.entity.position.x},${this.entity.position.y}`;
+
     addCacheSet('entitiesAtLocation', locId, this.entity.id);
   }
 
   onDetached() {
-    const locId = `${this.x},${this.y}}`;
+    const locId = `${this.x},${this.y}`;
+    deleteCacheSet('entitiesAtLocation', locId, this.entity.id);
+  }
+
+  onDestroyed() {
+    const locId = `${this.x},${this.y}`;
     deleteCacheSet('entitiesAtLocation', locId, this.entity.id);
   }
 }

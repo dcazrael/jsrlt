@@ -1,14 +1,6 @@
 import { grid } from '../lib/canvas';
 import { addCacheSet, deleteCacheSet, readCacheSet } from '../state/cache';
-import {
-  Ai,
-  Defense,
-  Health,
-  IsBlocking,
-  IsDead,
-  Layer300,
-  Move,
-} from '../state/components';
+import { Defense, Health, Move, Paralyzed } from '../state/components/';
 import world, { addLog } from '../state/ecs';
 
 const movableEntities = world.createQuery({
@@ -20,8 +12,6 @@ const attack = (entity, target) => {
   target.fireEvent('take-damage', { amount: damage });
 
   if (target.health.current <= 0) {
-    kill(target);
-
     return addLog(
       `${entity.description.name} kicked a ${target.description.name} for ${damage} damage and killed ${target.description.name}!`
     );
@@ -31,19 +21,12 @@ const attack = (entity, target) => {
   );
 };
 
-const kill = (entity) => {
-  entity.appearance.char = '%';
-  if (entity.has(Ai) && entity.has(IsBlocking)) {
-    entity.remove(entity.ai);
-    entity.remove(entity.isBlocking);
-  }
-  entity.add(IsDead);
-  entity.remove(entity.layer400);
-  entity.add(Layer300);
-};
-
 export const movement = () => {
   movableEntities.get().forEach((entity) => {
+    if (entity.has(Paralyzed)) {
+      return;
+    }
+
     let mx = entity.move.x;
     let my = entity.move.y;
     if (entity.move.relative) {

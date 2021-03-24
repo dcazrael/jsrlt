@@ -19,9 +19,13 @@ import {
   Layer300,
   Layer400,
   Move,
+  Paralyzed,
   Position,
   Power,
-} from './components';
+  RequiresTarget,
+  Target,
+  TargetingItem,
+} from './components/';
 import {
   Being,
   Floor,
@@ -30,6 +34,8 @@ import {
   Item,
   ManaPotion,
   Player,
+  ScrollLightning,
+  ScrollParalyze,
   Tile,
   Wall,
 } from './prefabs';
@@ -56,8 +62,12 @@ ecs.registerComponent(Layer100);
 ecs.registerComponent(Layer300);
 ecs.registerComponent(Layer400);
 ecs.registerComponent(Move);
+ecs.registerComponent(RequiresTarget);
+ecs.registerComponent(Paralyzed);
 ecs.registerComponent(Position);
 ecs.registerComponent(Power);
+ecs.registerComponent(Target);
+ecs.registerComponent(TargetingItem);
 
 // register "primitives" first!
 
@@ -71,6 +81,8 @@ ecs.registerPrefab(HealthPotion);
 ecs.registerPrefab(ManaPotion);
 ecs.registerPrefab(Goblin);
 ecs.registerPrefab(Player);
+ecs.registerPrefab(ScrollLightning);
+ecs.registerPrefab(ScrollParalyze);
 ecs.registerPrefab(Wall);
 
 export const messageLog = ['', "Welcome to Gobs 'O Goblins!", ''];

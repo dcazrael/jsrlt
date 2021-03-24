@@ -1,7 +1,7 @@
 import { last } from 'lodash';
 import { gameState } from '..';
 import { clearCanvas, drawCell } from '../lib/canvas';
-import { Animate } from '../state/components';
+import { Animate } from '../state/components/';
 import world from '../state/ecs';
 
 const animatingEntities = world.createQuery({
@@ -38,7 +38,6 @@ export const animation = () => {
     const frameTime = time - animate.startTime;
     // end animation when complete
     if (frameTime > animate.duration) {
-      console.log(entity);
       return entity.remove(animate);
     }
     const framePercent = frameTime / animate.duration;

@@ -1,7 +1,7 @@
 import { grid } from '../lib/canvas';
 import createFOV from '../lib/fov';
 import { readCacheSet } from '../state/cache';
-import { IsInFov, IsOpaque, IsRevealed } from '../state/components';
+import { IsInFov, IsOpaque, IsRevealed } from '../state/components/';
 import world from '../state/ecs';
 
 const inFovEntities = world.createQuery({
@@ -30,7 +30,6 @@ export const fov = (origin) => {
       entitiesAtLoc.forEach((eId) => {
         const entity = world.getEntity(eId);
         entity.add(IsInFov);
-
         if (!entity.has(IsRevealed)) {
           entity.add(IsRevealed);
         }

@@ -1,5 +1,5 @@
 import { aStar } from '../lib/pathfinding';
-import { Ai, Description, IsInFov, Move } from '../state/components';
+import { Ai, Description, IsInFov, Move } from '../state/components/';
 import world from '../state/ecs';
 
 const aiEntities = world.createQuery({

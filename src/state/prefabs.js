@@ -134,5 +134,66 @@ export const ManaPotion = {
     },
   ],
 };
+
+export const ScrollLightning = {
+  name: 'ScrollLightning',
+  inherit: ['Item'],
+  components: [
+    {
+      type: 'Appearance',
+      properties: { char: '♪', color: '#DAA520' },
+    },
+    {
+      type: 'Description',
+      properties: { name: 'scroll of lightning' },
+    },
+    {
+      type: 'Effects',
+      properties: {
+        animate: { color: '#F7FF00' },
+        events: [
+          {
+            name: 'take-damage',
+            args: { amount: 25 },
+          },
+        ],
+      },
+    },
+    {
+      type: 'RequiresTarget',
+      properties: { acquired: 'RANDOM' },
+    },
+  ],
+};
+
+export const ScrollParalyze = {
+  name: 'ScrollParalyze',
+  inherit: ['Item'],
+  components: [
+    {
+      type: 'Appearance',
+      properties: { char: '♪', color: '#DAA520' },
+    },
+    {
+      type: 'Description',
+      properties: { name: 'scroll of paralyze' },
+    },
+    {
+      type: 'Effects',
+      properties: {
+        animate: { color: '#FFB0B0' },
+        addComponents: [
+          {
+            name: 'Paralyzed',
+            properties: {},
+          },
+        ],
+        duration: 10,
+      },
+    },
+    { type: 'RequiresTarget', properties: { acquired: 'MANUAL' } },
+  ],
+};
+
 // ---------- <Items ---------- //
 // ---------- <<Complex ---------- //
