@@ -34,6 +34,7 @@ import {
   Item,
   ManaPotion,
   Player,
+  ScrollFireball,
   ScrollLightning,
   ScrollParalyze,
   Tile,
@@ -81,6 +82,7 @@ ecs.registerPrefab(HealthPotion);
 ecs.registerPrefab(ManaPotion);
 ecs.registerPrefab(Goblin);
 ecs.registerPrefab(Player);
+ecs.registerPrefab(ScrollFireball);
 ecs.registerPrefab(ScrollLightning);
 ecs.registerPrefab(ScrollParalyze);
 ecs.registerPrefab(Wall);

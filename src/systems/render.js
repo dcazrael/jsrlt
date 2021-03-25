@@ -1,8 +1,9 @@
 import { throttle } from 'lodash';
-import { gameState, selectedInventoryIndex } from '..';
+import { gameState, selectedInventoryIndex, targetRange } from '..';
 import {
   clearCanvas,
   drawCell,
+  drawCircle,
   drawRect,
   drawText,
   grid,
@@ -231,12 +232,11 @@ const renderInventory = (player) => {
     y: grid.inventory.y + 1,
   });
 
-  if (player.inventory.inventoryItemIds.length) {
-    player.inventory.inventoryItemIds.forEach((itemId, index) => {
-      const entity = world.getEntity(itemId);
+  if (player.inventory.inventoryItems.length) {
+    player.inventory.inventoryItems.forEach((item, index) => {
       drawText({
         text: `${index === selectedInventoryIndex ? '*' : ' '}${
-          entity.description.name
+          item.description.name
         }`,
         background: 'black',
         color: 'white',
@@ -265,6 +265,10 @@ const renderTargeting = (mPos) => {
 
   if (entitiesAtLoc) {
     if (entitiesAtLoc.some((eId) => world.getEntity(eId).isRevealed)) {
+      if (targetRange > 1) {
+        drawCircle(x, y, targetRange);
+        return;
+      }
       drawCell({
         appearance: {
           char: '',

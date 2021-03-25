@@ -13,20 +13,23 @@ const targetingEntities = world.createQuery({
 
 export const targeting = (player) => {
   targetingEntities.get().forEach((entity) => {
+    console.log(entity);
     const item = world.getEntity(entity.targetingItem.itemId);
 
     if (item && item.has(Effects)) {
-      const targets = readCacheSet('entitiesAtLocation', entity.target.locId);
+      entity.target.forEach((t, idx) => {
+        const targets = readCacheSet('entitiesAtLocation', t.locId);
 
-      targets.forEach((eId) => {
-        const target = world.getEntity(eId);
-
-        item.effects.forEach((x) => {
-          target.add(ActiveEffects, { ...x.serialize() });
+        targets.forEach((eId) => {
+          const target = world.getEntity(eId);
+          if (target.isInFov) {
+            item.effects.forEach((x) => {
+              target.add(ActiveEffects, { ...x.serialize() });
+            });
+          }
         });
+        entity.remove(entity.target[idx]);
       });
-
-      entity.remove(entity.target);
       entity.remove(entity.targetingItem);
 
       addLog(`You use a ${item.description.name}`);

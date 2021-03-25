@@ -2,7 +2,7 @@ import { get, sample, times } from 'lodash';
 import './lib/canvas';
 import { grid, pxToCell } from './lib/canvas';
 import { createDungeon } from './lib/dungeon';
-import { toLocId } from './lib/grid';
+import { circle, toLocId } from './lib/grid';
 import { readCacheSet } from './state/cache';
 import {
   ActiveEffects,
@@ -42,28 +42,29 @@ const openTiles = Object.values(dungeon.tiles).filter(
   (x) => x.sprite === 'FLOOR'
 );
 
-times(5, () => {
+times(10, () => {
   const tile = sample(openTiles);
 
   world.createPrefab('Goblin').add(Position, { x: tile.x, y: tile.y });
 });
 
-times(5, () => {
+times(0, () => {
   const tile = sample(openTiles);
   world.createPrefab('HealthPotion').add(Position, { x: tile.x, y: tile.y });
 });
-times(0, () => {
-  const tile = sample(openTiles);
-  world.createPrefab('ManaPotion').add(Position, { x: tile.x, y: tile.y });
-});
 
-times(10, () => {
+times(0, () => {
   const tile = sample(openTiles);
   world.createPrefab('ScrollLightning').add(Position, { x: tile.x, y: tile.y });
 });
-times(20, () => {
+times(0, () => {
   const tile = sample(openTiles);
   world.createPrefab('ScrollParalyze').add(Position, { x: tile.x, y: tile.y });
+});
+
+times(50, () => {
+  const tile = sample(openTiles);
+  world.createPrefab('ScrollFireball').add(Position, { x: tile.x, y: tile.y });
 });
 
 fov(player);
@@ -72,6 +73,7 @@ render(player);
 let userInput = null;
 let playerTurn = true;
 export let gameState = 'GAME';
+export let targetRange = 1;
 export let selectedInventoryIndex = 0;
 
 document.addEventListener('keydown', (ev) => {
@@ -138,17 +140,17 @@ const processUserInput = () => {
 
     if (userInput === 'ArrowDown') {
       selectedInventoryIndex += 1;
-      if (selectedInventoryIndex > player.inventory.inventoryItemIds.length - 1)
-        selectedInventoryIndex = player.inventory.inventoryItemIds.length - 1;
+      if (selectedInventoryIndex > player.inventory.inventoryItems.length - 1)
+        selectedInventoryIndex = player.inventory.inventoryItems.length - 1;
     }
 
     if (userInput === 'c') {
-      const entity = world.getEntity(
-        player.inventory.inventoryItemIds[selectedInventoryIndex]
-      );
+      const entity = player.inventory.inventoryItems[selectedInventoryIndex];
 
       if (entity) {
         if (entity.requiresTarget) {
+          targetRange = entity.requiresTarget.aoeRange || 1;
+
           if (entity.requiresTarget.acquired === 'RANDOM') {
             // get a target that is NOT the player
             const target = sample([...enemiesInFOV.get()]);
@@ -171,22 +173,14 @@ const processUserInput = () => {
           addLog(`You consume a ${entity.description.name}`);
           player.fireEvent('consume', entity);
         }
-
-        if (
-          selectedInventoryIndex >
-          player.inventory.inventoryItemIds.length - 1
-        )
-          selectedInventoryIndex = player.inventory.inventoryItemIds.length - 1;
-
-        gameState = 'GAME';
       }
+      selectedInventoryIndex = 0;
+      gameState = 'GAME';
     }
 
     if (userInput === 'd') {
-      const entity = world.getEntity(
-        player.inventory.inventoryItemIds[selectedInventoryIndex]
-      );
-      if (player.inventory.inventoryItemIds.length) {
+      if (player.inventory.inventoryItems.length) {
+        const entity = player.inventory.inventoryItems[selectedInventoryIndex];
         addLog(`You drop a ${entity.description.name}`);
         player.fireEvent('drop', entity);
       }
@@ -210,28 +204,26 @@ const update = () => {
   }
 
   if (playerTurn && userInput && gameState === 'INVENTORY') {
-    processUserInput();
-    targeting(player);
     effects();
+    processUserInput();
+    gameState === 'TARGETING';
     render(player);
     playerTurn = true;
   }
 
   if (playerTurn && userInput && gameState === 'GAME') {
-    processUserInput();
     effects();
+    processUserInput();
     movement();
     fov(player);
     render(player);
 
-    if (gameState === 'GAME') {
-      playerTurn = false;
-    }
+    playerTurn = false;
   }
 
   if (!playerTurn) {
-    ai(player);
     effects();
+    ai(player);
     movement();
     fov(player);
     render(player);
@@ -269,9 +261,16 @@ canvas.onclick = (e) => {
     }
 
     if (gameState === 'TARGETING') {
-      player.add(Target, { locId });
+      const entity = player.inventory.inventoryItems[selectedInventoryIndex];
+      if (entity.requiresTarget.aoeRange) {
+        const targets = circle({ x, y }, entity.requiresTarget.aoeRange);
+        targets.forEach((locId) => player.add(Target, { locId }));
+      } else {
+        player.add(Target, { locId });
+      }
       gameState = 'GAME';
       targeting(player);
+      effects();
       render(player);
     }
   });

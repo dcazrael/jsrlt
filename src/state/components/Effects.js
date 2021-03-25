@@ -1,6 +1,5 @@
 import { Component } from 'geotic';
 
-// effects
 const effectProps = {
   component: '',
   delta: '',

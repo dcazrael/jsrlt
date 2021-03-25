@@ -1,6 +1,7 @@
 import { ActiveEffects, Animate } from '../state/components/';
 import { Frozen, Paralyzed, Poisoned } from '../state/components/StatusEffects';
 import world from '../state/ecs';
+import { toCamelCase } from '../utils/misc';
 
 const classes = { Frozen, Paralyzed, Poisoned };
 
@@ -40,7 +41,7 @@ export const effects = () => {
         if (c.addComponents.length) {
           c.addComponents.forEach((component) => {
             if (entity.has(classes[component.name])) {
-              entity.remove(entity[component.name.toLowerCase()]);
+              entity.remove(entity[toCamelCase(component.name)]);
             }
           });
         }

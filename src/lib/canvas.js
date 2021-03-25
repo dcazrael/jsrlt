@@ -1,4 +1,4 @@
-import { rectangle } from './grid';
+import { circle, rectangle } from './grid';
 
 const pixelRatio = window.devicePixelRatio || 1;
 const canvas = document.querySelector('#canvas');
@@ -141,5 +141,20 @@ export const drawRect = (x, y, width, height, color) => {
 
   Object.values(rect.tiles).forEach((position) => {
     drawBackground({ color, position });
+  });
+};
+
+export const drawCircle = (x, y, radius) => {
+  const cells = circle({ x, y }, radius);
+  cells.forEach((cell) => {
+    const x = parseInt(cell.split(',')[0]);
+    const y = parseInt(cell.split(',')[1]);
+    drawCell({
+      appearance: {
+        char: '',
+        background: 'rgba(74, 0, 218, 0.5)',
+      },
+      position: { x, y },
+    });
   });
 };

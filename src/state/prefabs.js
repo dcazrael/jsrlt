@@ -74,7 +74,7 @@ export const Player = {
   components: [
     { type: 'Appearance', properties: { char: '@', color: '#FFF' } },
     { type: 'Description', properties: { name: 'You' } },
-    { type: 'Health', properties: { current: 12, max: 20 } },
+    { type: 'Health', properties: { current: 20, max: 20 } },
     { type: 'Inventory' },
   ],
 };
@@ -192,6 +192,40 @@ export const ScrollParalyze = {
       },
     },
     { type: 'RequiresTarget', properties: { acquired: 'MANUAL' } },
+  ],
+};
+
+export const ScrollFireball = {
+  name: 'ScrollFireball',
+  inherit: ['Item'],
+  components: [
+    {
+      type: 'Appearance',
+      properties: { char: '♪', color: '#DAA520' },
+    },
+    {
+      type: 'Description',
+      properties: { name: 'scroll of fireball' },
+    },
+    {
+      type: 'Effects',
+      properties: {
+        animate: { color: '#FFA200', char: '^' },
+        events: [
+          {
+            name: 'take-damage',
+            args: { amount: 25 },
+          },
+        ],
+      },
+    },
+    {
+      type: 'RequiresTarget',
+      properties: {
+        acquired: 'MANUAL',
+        aoeRange: 3,
+      },
+    },
   ],
 };
 
