@@ -296,19 +296,11 @@ const renderTargeting = (mPos) => {
 
 const renderMenu = () => {
   drawText({
-    text: `(i)Inventory (g)Pickup (arrow keys)Move/Attack (mouse)Look/Target (<)Stairs Up (>)Stairs Down`,
+    text: `(n)New (s)Save (l)Load | (i)Inventory (g)Pickup (arrow keys)Move/Attack (mouse)Look/Target`,
     background: '#000',
     color: '#666',
     x: grid.menu.x,
     y: grid.menu.y,
-  });
-
-  drawText({
-    text: `(n)New (s)Save (l)Load`,
-    background: '#000',
-    color: '#666',
-    x: grid.menu.x,
-    y: grid.menu.y + 1,
   });
 };
 

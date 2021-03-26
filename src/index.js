@@ -56,7 +56,7 @@ const createDungeonLevel = ({
     height: grid.map.height,
   });
 
-  times(5, () => {
+  times(0, () => {
     world.createPrefab('Goblin').add(Position, getOpenTiles(dungeon));
   });
 
@@ -95,11 +95,12 @@ const createDungeonLevel = ({
   return { dungeon, stairsUp, stairsDown };
 };
 
-const goToDungeonLevel = (level) => {
+export const goToDungeonLevel = (level) => {
   const goingUp = readCache('z') < level;
   const floor = readCache('floors')[level];
 
   addCache('z', level);
+  const oldPos = player.position;
   player.remove(player.position);
 
   let newPosition = goingUp ? floor?.stairsDown : floor?.stairsUp;
@@ -171,29 +172,6 @@ const processUserInput = () => {
   }
 
   if (gameState === 'GAME') {
-    if (userInput === '>') {
-      if (
-        toLocId(player.position) ==
-        readCache(`floors.${readCache('z')}.stairsDown`)
-      ) {
-        addLog('You descend deeper into the dungeon');
-        goToDungeonLevel(readCache('z') - 1);
-      } else {
-        addLog('There are no stairs to descend');
-      }
-    }
-
-    if (userInput === '<') {
-      if (
-        toLocId(player.position) == readCache(`floors.${readCache('z')}.stairs`)
-      ) {
-        addLog('You climb from the depths of the dungeon');
-        goToDungeonLevel(readCache('z') + 1);
-      } else {
-        addLog('There are no stairs to climb');
-      }
-    }
-
     if (userInput === 'ArrowUp') {
       player.add(Move, { x: 0, y: -1, z: readCache('z') });
     }

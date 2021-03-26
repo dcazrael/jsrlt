@@ -1,6 +1,6 @@
-import { addLog } from '..';
+import { addLog, goToDungeonLevel } from '..';
 import { grid } from '../lib/canvas';
-import { readCacheSet } from '../state/cache';
+import { readCache, readCacheSet } from '../state/cache';
 import {
   Defense,
   Health,
@@ -49,6 +49,7 @@ export const movement = () => {
 
     // check for blockers
     const blockers = [];
+    const stairs = [];
     const entitiesAtLocation = readCacheSet(
       'entitiesAtLocation',
       `${mx},${my},${mz}`
@@ -57,6 +58,9 @@ export const movement = () => {
     for (const eId of entitiesAtLocation) {
       if (world.getEntity(eId).isBlocking) {
         blockers.push(eId);
+      }
+      if (world.getEntity(eId).isStairs) {
+        stairs.push(eId);
       }
     }
 
@@ -75,19 +79,23 @@ export const movement = () => {
       return;
     }
 
-    // deleteCacheSet(
-    //   'entitiesAtLocation',
-    //   `${entity.position.x},${entity.position.y}`,
-    //   entity.id
-    // );
-    // addCacheSet('entitiesAtLocation', `${mx},${my}`, entity.id);
-
-    // entity.position.x = mx;
-    // entity.position.y = my;
+    if (stairs.length) {
+      stairs.forEach((eId) => {
+        const target = world.getEntity(eId);
+        if (target.appearance.char === '>') {
+          addLog('You descend deeper into the dungeon');
+          goToDungeonLevel(readCache('z') - 1);
+        }
+        if (target.appearance.char === '<') {
+          addLog('You climb from the depths of the dungeon');
+          goToDungeonLevel(readCache('z') + 1);
+        }
+      });
+      return;
+    }
 
     entity.remove(entity.position);
     entity.add(Position, { x: mx, y: my, z: mz });
-
     entity.remove(entity.move);
   });
 };

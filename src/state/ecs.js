@@ -26,6 +26,7 @@ import {
   Target,
   TargetingItem,
 } from './components/';
+import { IsStairs } from './components/Status';
 import {
   Being,
   Floor,
@@ -61,6 +62,7 @@ ecs.registerComponent(IsInFov);
 ecs.registerComponent(IsOpaque);
 ecs.registerComponent(IsPickup);
 ecs.registerComponent(IsRevealed);
+ecs.registerComponent(IsStairs);
 ecs.registerComponent(Layer100);
 ecs.registerComponent(Layer300);
 ecs.registerComponent(Layer400);

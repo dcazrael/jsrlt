@@ -47,7 +47,7 @@ export const Wall = {
     {
       type: 'Appearance',
       properties: {
-        char: '#',
+        char: '■',
         color: '#AAA',
       },
     },
@@ -67,8 +67,8 @@ export const Floor = {
     {
       type: 'Appearance',
       properties: {
-        char: '•',
-        color: '#555',
+        char: '·',
+        color: '#333',
       },
     },
     {
@@ -84,6 +84,9 @@ export const StairsUp = {
   name: 'StairsUp',
   inherit: ['Tile'],
   components: [
+    {
+      type: 'IsStairs',
+    },
     {
       type: 'Appearance',
       properties: {
@@ -104,6 +107,9 @@ export const StairsDown = {
   name: 'StairsDown',
   inherit: ['Tile'],
   components: [
+    {
+      type: 'IsStairs',
+    },
     {
       type: 'Appearance',
       properties: {
@@ -235,7 +241,7 @@ export const ScrollLightning = {
     {
       type: 'Appearance',
       properties: {
-        char: '♪',
+        char: '🗲',
         color: '#DAA520',
       },
     },
@@ -277,7 +283,7 @@ export const ScrollParalyze = {
     {
       type: 'Appearance',
       properties: {
-        char: '♪',
+        char: '≈',
         color: '#DAA520',
       },
     },
@@ -318,7 +324,7 @@ export const ScrollFireball = {
     {
       type: 'Appearance',
       properties: {
-        char: '♪',
+        char: '☼',
         color: '#DAA520',
       },
     },
