@@ -1,4 +1,5 @@
 import { aStar } from '../lib/pathfinding';
+import { readCache } from '../state/cache';
 import { Ai, Description, IsInFov, Move } from '../state/components/';
 import world from '../state/ecs';
 
@@ -19,6 +20,11 @@ const moveToTarget = (entity, target) => {
 
   if (path.length) {
     const newLoc = path[1];
-    entity.add(Move, { x: newLoc[0], y: newLoc[1], relative: false });
+    entity.add(Move, {
+      x: newLoc[0],
+      y: newLoc[1],
+      z: readCache('z'),
+      relative: false,
+    });
   }
 };

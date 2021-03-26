@@ -1,6 +1,6 @@
 import { grid } from '../lib/canvas';
 import createFOV from '../lib/fov';
-import { readCacheSet } from '../state/cache';
+import { readCache, readCacheSet } from '../state/cache';
 import { IsInFov, IsOpaque, IsRevealed } from '../state/components/';
 import world from '../state/ecs';
 
@@ -18,7 +18,15 @@ export const fov = (origin) => {
   const originX = origin.position.x;
   const originY = origin.position.y;
 
-  const FOV = createFOV(opaqueEntities, width, height, originX, originY, 10);
+  const FOV = createFOV(
+    opaqueEntities,
+    width,
+    height,
+    originX,
+    originY,
+    readCache('z'),
+    10
+  );
 
   // clear out stale fov
   inFovEntities.get().forEach((x) => x.remove(x.isInFov));

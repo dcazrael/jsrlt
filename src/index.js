@@ -2,10 +2,12 @@ import { get, sample, times } from 'lodash';
 import './lib/canvas';
 import { grid, pxToCell } from './lib/canvas';
 import { createDungeon } from './lib/dungeon';
-import { circle, toLocId } from './lib/grid';
+import { circle, toCell, toLocId } from './lib/grid';
 import {
+  addCache,
   clearCache,
   deserializeCache,
+  readCache,
   readCacheSet,
   serializeCache,
 } from './state/cache';
@@ -35,59 +37,110 @@ export const addLog = (text) => {
 
 const enemiesInFOV = world.createQuery({ all: [IsInFov, Ai] });
 
-const initGame = () => {
-  //init game map and player position
+const getOpenTiles = (dungeon) => {
+  const openTiles = Object.values(dungeon.tiles).filter(
+    (x) => x.sprite === 'FLOOR'
+  );
+  return sample(openTiles);
+};
+
+const createDungeonLevel = ({
+  createStairsUp = true,
+  createStairsDown = true,
+} = {}) => {
   const dungeon = createDungeon({
     x: grid.map.x,
     y: grid.map.y,
+    z: readCache('z'),
     width: grid.map.width,
     height: grid.map.height,
   });
 
-  player = world.createPrefab('Player');
-  player.add(Position, {
-    x: dungeon.rooms[0].center.x,
-    y: dungeon.rooms[0].center.y,
+  times(5, () => {
+    world.createPrefab('Goblin').add(Position, getOpenTiles(dungeon));
   });
-
-  const openTiles = Object.values(dungeon.tiles).filter(
-    (x) => x.sprite === 'FLOOR'
-  );
 
   times(10, () => {
-    const tile = sample(openTiles);
-
-    world.createPrefab('Goblin').add(Position, { x: tile.x, y: tile.y });
+    world.createPrefab('HealthPotion').add(Position, getOpenTiles(dungeon));
   });
 
-  times(0, () => {
-    const tile = sample(openTiles);
-    world.createPrefab('HealthPotion').add(Position, { x: tile.x, y: tile.y });
+  times(10, () => {
+    world.createPrefab('ScrollLightning').add(Position, getOpenTiles(dungeon));
   });
 
-  times(0, () => {
-    const tile = sample(openTiles);
-    world
-      .createPrefab('ScrollLightning')
-      .add(Position, { x: tile.x, y: tile.y });
-  });
-  times(0, () => {
-    const tile = sample(openTiles);
-    world
-      .createPrefab('ScrollParalyze')
-      .add(Position, { x: tile.x, y: tile.y });
+  times(10, () => {
+    world.createPrefab('ScrollParalyze').add(Position, getOpenTiles(dungeon));
   });
 
-  times(50, () => {
-    const tile = sample(openTiles);
-    world
-      .createPrefab('ScrollFireball')
-      .add(Position, { x: tile.x, y: tile.y });
+  times(10, () => {
+    world.createPrefab('ScrollFireball').add(Position, getOpenTiles(dungeon));
   });
+
+  let stairsUp, stairsDown;
+
+  if (createStairsUp) {
+    times(1, () => {
+      stairsUp = world.createPrefab('StairsUp');
+      stairsUp.add(Position, getOpenTiles(dungeon));
+    });
+  }
+
+  if (createStairsDown) {
+    times(1, () => {
+      stairsDown = world.createPrefab('StairsDown');
+      stairsDown.add(Position, getOpenTiles(dungeon));
+    });
+  }
+
+  return { dungeon, stairsUp, stairsDown };
+};
+
+const goToDungeonLevel = (level) => {
+  const goingUp = readCache('z') < level;
+  const floor = readCache('floors')[level];
+
+  addCache('z', level);
+  player.remove(player.position);
+
+  let newPosition = goingUp ? floor?.stairsDown : floor?.stairsUp;
+
+  if (!floor) {
+    const { stairsDown, stairsUp } = createDungeonLevel();
+
+    addCache(`floors.${level}`, {
+      stairsDown: toLocId(stairsDown.position),
+      stairsUp: toLocId(stairsUp.position),
+    });
+
+    newPosition = goingUp ? stairsDown.position : stairsUp.position;
+  }
+
+  player.add(Position, toCell(newPosition));
 
   fov(player);
   render(player);
 };
+
+const initGame = () => {
+  const { dungeon, stairsDown, stairsUp } = createDungeonLevel({
+    createStairsUp: false,
+  });
+
+  player = world.createPrefab('Player');
+
+  addCache(`floors.${-1}`, {
+    stairsDown: toLocId(stairsDown.position),
+  });
+
+  const playerSpawn = stairsUp ? stairsUp.position : getOpenTiles(dungeon);
+
+  player.add(Position, playerSpawn);
+
+  fov(player);
+  render(player);
+};
+
+// game variables
 let player = {};
 let userInput = null;
 let playerTurn = true;
@@ -95,10 +148,13 @@ export let gameState = 'GAME';
 export let targetRange = 1;
 export let selectedInventoryIndex = 0;
 
+// start game
 initGame();
 
 document.addEventListener('keydown', (ev) => {
-  userInput = ev.key;
+  if (ev.key !== 'Shift') {
+    userInput = ev.key;
+  }
 });
 
 const processUserInput = () => {
@@ -115,17 +171,40 @@ const processUserInput = () => {
   }
 
   if (gameState === 'GAME') {
+    if (userInput === '>') {
+      if (
+        toLocId(player.position) ==
+        readCache(`floors.${readCache('z')}.stairsDown`)
+      ) {
+        addLog('You descend deeper into the dungeon');
+        goToDungeonLevel(readCache('z') - 1);
+      } else {
+        addLog('There are no stairs to descend');
+      }
+    }
+
+    if (userInput === '<') {
+      if (
+        toLocId(player.position) == readCache(`floors.${readCache('z')}.stairs`)
+      ) {
+        addLog('You climb from the depths of the dungeon');
+        goToDungeonLevel(readCache('z') + 1);
+      } else {
+        addLog('There are no stairs to climb');
+      }
+    }
+
     if (userInput === 'ArrowUp') {
-      player.add(Move, { x: 0, y: -1 });
+      player.add(Move, { x: 0, y: -1, z: readCache('z') });
     }
     if (userInput === 'ArrowRight') {
-      player.add(Move, { x: 1, y: 0 });
+      player.add(Move, { x: 1, y: 0, z: readCache('z') });
     }
     if (userInput === 'ArrowDown') {
-      player.add(Move, { x: 0, y: 1 });
+      player.add(Move, { x: 0, y: 1, z: readCache('z') });
     }
     if (userInput === 'ArrowLeft') {
-      player.add(Move, { x: -1, y: 0 });
+      player.add(Move, { x: -1, y: 0, z: readCache('z') });
     }
 
     if (userInput === 'g') {
@@ -190,6 +269,7 @@ const processUserInput = () => {
             if (target) {
               player.add(TargetingItem, { itemId: entity.id });
               player.add(Target, { locId: toLocId(target.position) });
+              targeting(player);
             } else {
               addLog(`The scroll disintegrates uselessly in your hand`);
               player.fireEvent('consume', entity);
@@ -238,21 +318,23 @@ const update = () => {
 
   if (playerTurn && userInput && gameState === 'TARGETING') {
     processUserInput();
+    effects();
     render(player);
+
     playerTurn = true;
   }
 
   if (playerTurn && userInput && gameState === 'INVENTORY') {
-    effects();
     processUserInput();
+    effects();
     gameState === 'TARGETING';
     render(player);
     playerTurn = true;
   }
 
   if (playerTurn && userInput && gameState === 'GAME') {
-    effects();
     processUserInput();
+    effects();
     movement();
     fov(player);
     render(player);
@@ -261,8 +343,8 @@ const update = () => {
   }
 
   if (!playerTurn) {
-    effects();
     ai(player);
+    effects();
     movement();
     fov(player);
     render(player);
@@ -282,7 +364,7 @@ const canvas = document.querySelector('#canvas');
 
 canvas.onclick = (e) => {
   const [x, y] = pxToCell(e);
-  const locId = toLocId({ x, y });
+  const locId = toLocId({ x, y, z: readCache('z') });
 
   readCacheSet('entitiesAtLocation', locId).forEach((eId) => {
     const entity = world.getEntity(eId);
@@ -302,7 +384,9 @@ canvas.onclick = (e) => {
     if (gameState === 'TARGETING') {
       const entity = player.inventory.inventoryItems[selectedInventoryIndex];
       if (entity.requiresTarget.aoeRange) {
-        const targets = circle({ x, y }, entity.requiresTarget.aoeRange);
+        const targets = circle({ x, y }, entity.requiresTarget.aoeRange).map(
+          (locId) => `${locId},${readCache('z')}`
+        );
         targets.forEach((locId) => player.add(Target, { locId }));
       } else {
         player.add(Target, { locId });
@@ -337,6 +421,8 @@ const loadGame = () => {
   for (let entity of world.getEntities()) {
     entity.destroy();
   }
+
+  clearCache();
 
   world.deserialize(data.world);
   deserializeCache(data.cache);

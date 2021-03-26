@@ -1,7 +1,13 @@
 import { addLog } from '..';
 import { grid } from '../lib/canvas';
-import { addCacheSet, deleteCacheSet, readCacheSet } from '../state/cache';
-import { Defense, Health, Move, Paralyzed } from '../state/components/';
+import { readCacheSet } from '../state/cache';
+import {
+  Defense,
+  Health,
+  Move,
+  Paralyzed,
+  Position,
+} from '../state/components/';
 import world from '../state/ecs';
 
 const movableEntities = world.createQuery({
@@ -30,6 +36,7 @@ export const movement = () => {
 
     let mx = entity.move.x;
     let my = entity.move.y;
+    let mz = entity.move.z;
     if (entity.move.relative) {
       mx = entity.position.x + entity.move.x;
       my = entity.position.y + entity.move.y;
@@ -44,7 +51,7 @@ export const movement = () => {
     const blockers = [];
     const entitiesAtLocation = readCacheSet(
       'entitiesAtLocation',
-      `${mx},${my}`
+      `${mx},${my},${mz}`
     );
 
     for (const eId of entitiesAtLocation) {
@@ -68,15 +75,18 @@ export const movement = () => {
       return;
     }
 
-    deleteCacheSet(
-      'entitiesAtLocation',
-      `${entity.position.x},${entity.position.y}`,
-      entity.id
-    );
-    addCacheSet('entitiesAtLocation', `${mx},${my}`, entity.id);
+    // deleteCacheSet(
+    //   'entitiesAtLocation',
+    //   `${entity.position.x},${entity.position.y}`,
+    //   entity.id
+    // );
+    // addCacheSet('entitiesAtLocation', `${mx},${my}`, entity.id);
 
-    entity.position.x = mx;
-    entity.position.y = my;
+    // entity.position.x = mx;
+    // entity.position.y = my;
+
+    entity.remove(entity.position);
+    entity.add(Position, { x: mx, y: my, z: mz });
 
     entity.remove(entity.move);
   });

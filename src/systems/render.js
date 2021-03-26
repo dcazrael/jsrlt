@@ -10,7 +10,7 @@ import {
   pxToCell,
 } from '../lib/canvas';
 import { toLocId } from '../lib/grid';
-import { readCacheSet } from '../state/cache';
+import { readCache, readCacheSet } from '../state/cache';
 import {
   Appearance,
   IsInFov,
@@ -44,6 +44,8 @@ export const renderMap = (player) => {
   clearMap();
 
   layer100Entities.get().forEach((entity) => {
+    if (entity.position.z !== readCache('z')) return;
+
     if (entity.isInFov) {
       drawCell(entity);
     } else {
@@ -52,6 +54,8 @@ export const renderMap = (player) => {
   });
 
   layer300Entities.get().forEach((entity) => {
+    if (entity.position.z !== readCache('z')) return;
+
     if (entity.isInFov) {
       drawCell(entity);
     } else {
@@ -60,6 +64,8 @@ export const renderMap = (player) => {
   });
 
   layer400Entities.get().forEach((entity) => {
+    if (entity.position.z !== readCache('z')) return;
+
     if (entity.isInFov) {
       drawCell(entity);
     } else {
@@ -107,6 +113,14 @@ const renderPlayerHud = (player) => {
       y: grid.playerHud.y + 1,
     });
   }
+
+  drawText({
+    text: `Depth: ${Math.abs(readCache('z'))}`,
+    background: 'black',
+    color: '#666',
+    x: grid.playerHud.x,
+    y: grid.playerHud.y + 2,
+  });
 };
 
 const clearMessageLog = () => {
@@ -159,8 +173,8 @@ const clearInfoBar = () => {
 const renderInfoBar = (mPos) => {
   clearInfoBar();
 
-  const { x, y } = mPos;
-  const locId = toLocId({ x, y });
+  const { x, y, z } = mPos;
+  const locId = toLocId({ x, y, z });
 
   const esAtLoc = readCacheSet('entitiesAtLocation', locId) || [];
   const entitiesAtLoc = [...esAtLoc];
@@ -174,7 +188,7 @@ const renderInfoBar = (mPos) => {
           char: '',
           background: 'rgba(255,255,255, 0.5)',
         },
-        position: { x, y },
+        position: { x, y, z },
       });
     }
 
@@ -256,8 +270,8 @@ const renderInventory = (player) => {
 };
 
 const renderTargeting = (mPos) => {
-  const { x, y } = mPos;
-  const locId = toLocId({ x, y });
+  const { x, y, z } = mPos;
+  const locId = toLocId({ x, y, z });
   const esAtLoc = readCacheSet('entitiesAtLocation', locId) || [];
   const entitiesAtLoc = [...esAtLoc];
 
@@ -274,7 +288,7 @@ const renderTargeting = (mPos) => {
           char: '',
           background: 'rgba(74, 232, 218, 0.5)',
         },
-        position: { x, y },
+        position: { x, y, z },
       });
     }
   }
@@ -282,11 +296,19 @@ const renderTargeting = (mPos) => {
 
 const renderMenu = () => {
   drawText({
-    text: `(n)New (s)Save (l)Load | (i)Inventory (g)Pickup (arrow keys)Move/Attack (mouse)Look/Target`,
+    text: `(i)Inventory (g)Pickup (arrow keys)Move/Attack (mouse)Look/Target (<)Stairs Up (>)Stairs Down`,
     background: '#000',
     color: '#666',
     x: grid.menu.x,
     y: grid.menu.y,
+  });
+
+  drawText({
+    text: `(n)New (s)Save (l)Load`,
+    background: '#000',
+    color: '#666',
+    x: grid.menu.x,
+    y: grid.menu.y + 1,
   });
 };
 
@@ -306,12 +328,12 @@ canvas.onmousemove = throttle((e) => {
   if (gameState === 'GAME') {
     const [x, y] = pxToCell(e);
     renderMap();
-    renderInfoBar({ x, y });
+    renderInfoBar({ x, y, z: readCache('z') });
   }
 
   if (gameState === 'TARGETING') {
     const [x, y] = pxToCell(e);
     renderMap();
-    renderTargeting({ x, y });
+    renderTargeting({ x, y, z: readCache('z') });
   }
 }, 100);

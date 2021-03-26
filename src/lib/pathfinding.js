@@ -1,6 +1,6 @@
 import { some, times } from 'lodash';
 import PF from 'pathfinding';
-import cache, { readCacheSet } from '../state/cache';
+import { readCache, readCacheSet } from '../state/cache';
 import world from '../state/ecs';
 import { grid } from './canvas';
 import { toCell } from './grid';
@@ -11,17 +11,18 @@ times(grid.height, () => baseMatrix.push(new Array(grid.width).fill(0)));
 export const aStar = (start, goal) => {
   const matrix = JSON.parse(JSON.stringify(baseMatrix));
 
-  const locIds = Object.keys(cache.entitiesAtLocation);
+  const locIds = Object.keys(readCache('entitiesAtLocation'));
 
   locIds.forEach((locId) => {
-    if (
-      some([...readCacheSet('entitiesAtLocation', locId)], (eId) => {
-        return world.getEntity(eId).isBlocking;
-      })
-    ) {
-      const cell = toCell(locId);
-
-      matrix[cell.y][cell.x] = 1;
+    const cell = toCell(locId);
+    if (cell.z === readCache('z')) {
+      if (
+        some([...readCacheSet('entitiesAtLocation', locId)], (eId) => {
+          return world.getEntity(eId).isBlocking;
+        })
+      ) {
+        matrix[cell.y][cell.x] = 1;
+      }
     }
   });
 

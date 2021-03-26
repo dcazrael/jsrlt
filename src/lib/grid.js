@@ -1,5 +1,5 @@
-import { sample } from "lodash";
-import { grid } from "./canvas";
+import { sample } from 'lodash';
+import { grid } from './canvas';
 
 export const CARDINAL = [
   { x: 0, y: -1 }, // N
@@ -19,14 +19,14 @@ export const ALL = [...CARDINAL, ...DIAGONAL];
 
 export const toCell = (cellOrId) => {
   let cell = cellOrId;
-  if (typeof cell === "string") cell = idToCell(cell);
+  if (typeof cell === 'string') cell = idToCell(cell);
 
   return cell;
 };
 
 export const toLocId = (cellOrId) => {
   let locId = cellOrId;
-  if (typeof locId !== "string") locId = cellToId(locId);
+  if (typeof locId !== 'string') locId = cellToId(locId);
 
   return locId;
 };
@@ -60,7 +60,7 @@ export const circle = (center, radius) => {
   return locsIds;
 };
 
-export const rectangle = ({ x, y, width, height, hasWalls }, tileProps) => {
+export const rectangle = ({ x, y, z, width, height, hasWalls }, tileProps) => {
   const tiles = {};
 
   const x1 = x;
@@ -70,13 +70,13 @@ export const rectangle = ({ x, y, width, height, hasWalls }, tileProps) => {
   if (hasWalls) {
     for (let yi = y1 + 1; yi <= y2 - 1; yi++) {
       for (let xi = x1 + 1; xi <= x2 - 1; xi++) {
-        tiles[`${xi},${yi}`] = { x: xi, y: yi, ...tileProps };
+        tiles[`${xi},${yi},${z}`] = { x: xi, y: yi, z, ...tileProps };
       }
     }
   } else {
     for (let yi = y1; yi <= y2; yi++) {
       for (let xi = x1; xi <= x2; xi++) {
-        tiles[`${xi},${yi}`] = { x: xi, y: yi, ...tileProps };
+        tiles[`${xi},${yi},${z}`] = { x: xi, y: yi, z, ...tileProps };
       }
     }
   }
@@ -84,6 +84,7 @@ export const rectangle = ({ x, y, width, height, hasWalls }, tileProps) => {
   const center = {
     x: Math.round((x1 + x2) / 2),
     y: Math.round((y1 + y2) / 2),
+    z,
   };
 
   return { x1, x2, y1, y2, center, hasWalls, tiles };
@@ -105,11 +106,15 @@ export const distance = (cell1, cell2) => {
 };
 
 export const idToCell = (id) => {
-  const coords = id.split(",");
-  return { x: parseInt(coords[0], 10), y: parseInt(coords[1], 10) };
+  const coords = id.split(',');
+  return {
+    x: parseInt(coords[0], 10),
+    y: parseInt(coords[1], 10),
+    z: parseInt(coords[2], 10),
+  };
 };
 
-export const cellToId = ({ x, y }) => `${x},${y}`;
+export const cellToId = ({ x, y, z }) => `${x},${y},${z}`;
 
 export const isOnMapEdge = (x, y) => {
   const { width, height, x: mapX, y: mapY } = grid.map;
@@ -140,18 +145,18 @@ export const getNeighbors = ({ x, y }, direction = CARDINAL) => {
   return points;
 };
 
-export const getNeighborIds = (cellOrId, direction = "CARDINAL") => {
+export const getNeighborIds = (cellOrId, direction = 'CARDINAL') => {
   let cell = toCell(cellOrId);
 
-  if (direction === "CARDINAL") {
+  if (direction === 'CARDINAL') {
     return getNeighbors(cell, CARDINAL).map(cellToId);
   }
 
-  if (direction === "DIAGONAL") {
+  if (direction === 'DIAGONAL') {
     return getNeighbors(cell, DIAGONAL).map(cellToId);
   }
 
-  if (direction === "ALL") {
+  if (direction === 'ALL') {
     return [
       ...getNeighbors(cell, CARDINAL).map(cellToId),
       ...getNeighbors(cell, DIAGONAL).map(cellToId),
@@ -161,12 +166,12 @@ export const getNeighborIds = (cellOrId, direction = "CARDINAL") => {
 
 export const isNeighbor = (a, b) => {
   let posA = a;
-  if (typeof posA === "string") {
+  if (typeof posA === 'string') {
     posA = idToCell(a);
   }
 
   let posB = b;
-  if (typeof posB === "string") {
+  if (typeof posB === 'string') {
     posB = idToCell(b);
   }
 
@@ -210,10 +215,10 @@ export const getDirection = (a, b) => {
 
   let dir;
 
-  if (ax - bx === 1 && ay - by === 0) dir = "→";
-  if (ax - bx === 0 && ay - by === -1) dir = "↑";
-  if (ax - bx === -1 && ay - by === 0) dir = "←";
-  if (ax - bx === 0 && ay - by === 1) dir = "↓";
+  if (ax - bx === 1 && ay - by === 0) dir = '→';
+  if (ax - bx === 0 && ay - by === -1) dir = '↑';
+  if (ax - bx === -1 && ay - by === 0) dir = '←';
+  if (ax - bx === 0 && ay - by === 1) dir = '↓';
 
   return dir;
 };

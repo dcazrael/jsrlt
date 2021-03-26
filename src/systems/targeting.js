@@ -14,7 +14,6 @@ const targetingEntities = world.createQuery({
 
 export const targeting = (player) => {
   targetingEntities.get().forEach((entity) => {
-    console.log(entity);
     const item = world.getEntity(entity.targetingItem.itemId);
 
     if (item && item.has(Effects)) {

@@ -38,15 +38,24 @@ export const Wall = {
   name: 'Wall',
   inherit: ['Tile'],
   components: [
-    { type: 'IsBlocking' },
-    { type: 'IsOpaque' },
+    {
+      type: 'IsBlocking',
+    },
+    {
+      type: 'IsOpaque',
+    },
     {
       type: 'Appearance',
-      properties: { char: '#', color: '#AAA' },
+      properties: {
+        char: '#',
+        color: '#AAA',
+      },
     },
     {
       type: 'Description',
-      properties: { name: 'wall' },
+      properties: {
+        name: 'wall',
+      },
     },
   ],
 };
@@ -57,11 +66,56 @@ export const Floor = {
   components: [
     {
       type: 'Appearance',
-      properties: { char: '•', color: '#555' },
+      properties: {
+        char: '•',
+        color: '#555',
+      },
     },
     {
       type: 'Description',
-      properties: { name: 'floor' },
+      properties: {
+        name: 'floor',
+      },
+    },
+  ],
+};
+
+export const StairsUp = {
+  name: 'StairsUp',
+  inherit: ['Tile'],
+  components: [
+    {
+      type: 'Appearance',
+      properties: {
+        char: '<',
+        color: '#AAA',
+      },
+    },
+    {
+      type: 'Description',
+      properties: {
+        name: 'set of stairs leading up',
+      },
+    },
+  ],
+};
+
+export const StairsDown = {
+  name: 'StairsDown',
+  inherit: ['Tile'],
+  components: [
+    {
+      type: 'Appearance',
+      properties: {
+        char: '>',
+        color: '#AAA',
+      },
+    },
+    {
+      type: 'Description',
+      properties: {
+        name: 'set of stairs leading down',
+      },
     },
   ],
 };
@@ -72,10 +126,29 @@ export const Player = {
   name: 'Player',
   inherit: ['Being'],
   components: [
-    { type: 'Appearance', properties: { char: '@', color: '#FFF' } },
-    { type: 'Description', properties: { name: 'You' } },
-    { type: 'Health', properties: { current: 20, max: 20 } },
-    { type: 'Inventory' },
+    {
+      type: 'Appearance',
+      properties: {
+        char: '@',
+        color: '#FFF',
+      },
+    },
+    {
+      type: 'Description',
+      properties: {
+        name: 'You',
+      },
+    },
+    {
+      type: 'Health',
+      properties: {
+        current: 20,
+        max: 20,
+      },
+    },
+    {
+      type: 'Inventory',
+    },
   ],
 };
 
@@ -83,14 +156,21 @@ export const Goblin = {
   name: 'Goblin',
   inherit: ['Being'],
   components: [
-    { type: 'Ai' },
+    {
+      type: 'Ai',
+    },
     {
       type: 'Appearance',
-      properties: { char: 'g', color: 'green' },
+      properties: {
+        char: 'g',
+        color: 'green',
+      },
     },
     {
       type: 'Description',
-      properties: { name: 'goblin' },
+      properties: {
+        name: 'goblin',
+      },
     },
   ],
 };
@@ -103,18 +183,26 @@ export const HealthPotion = {
   components: [
     {
       type: 'Appearance',
-      properties: { char: '!', color: '#DAA520' },
+      properties: {
+        char: '!',
+        color: '#DAA520',
+      },
     },
     {
       type: 'Description',
-      properties: { name: 'health potion' },
+      properties: {
+        name: 'health potion',
+      },
     },
     {
       type: 'Effects',
       properties: {
         component: 'health',
         delta: 5,
-        animate: { color: '#ff0000', char: '♥' },
+        animate: {
+          color: '#ff0000',
+          char: '♥',
+        },
       },
     },
   ],
@@ -126,11 +214,16 @@ export const ManaPotion = {
   components: [
     {
       type: 'Appearance',
-      properties: { char: '&', color: '#12A520' },
+      properties: {
+        char: '&',
+        color: '#12A520',
+      },
     },
     {
       type: 'Description',
-      properties: { name: 'mana potion' },
+      properties: {
+        name: 'mana potion',
+      },
     },
   ],
 };
@@ -141,27 +234,38 @@ export const ScrollLightning = {
   components: [
     {
       type: 'Appearance',
-      properties: { char: '♪', color: '#DAA520' },
+      properties: {
+        char: '♪',
+        color: '#DAA520',
+      },
     },
     {
       type: 'Description',
-      properties: { name: 'scroll of lightning' },
+      properties: {
+        name: 'scroll of lightning',
+      },
     },
     {
       type: 'Effects',
       properties: {
-        animate: { color: '#F7FF00' },
+        animate: {
+          color: '#F7FF00',
+        },
         events: [
           {
             name: 'take-damage',
-            args: { amount: 25 },
+            args: {
+              amount: 25,
+            },
           },
         ],
       },
     },
     {
       type: 'RequiresTarget',
-      properties: { acquired: 'RANDOM' },
+      properties: {
+        acquired: 'RANDOM',
+      },
     },
   ],
 };
@@ -172,16 +276,23 @@ export const ScrollParalyze = {
   components: [
     {
       type: 'Appearance',
-      properties: { char: '♪', color: '#DAA520' },
+      properties: {
+        char: '♪',
+        color: '#DAA520',
+      },
     },
     {
       type: 'Description',
-      properties: { name: 'scroll of paralyze' },
+      properties: {
+        name: 'scroll of paralyze',
+      },
     },
     {
       type: 'Effects',
       properties: {
-        animate: { color: '#FFB0B0' },
+        animate: {
+          color: '#FFB0B0',
+        },
         addComponents: [
           {
             name: 'Paralyzed',
@@ -191,7 +302,12 @@ export const ScrollParalyze = {
         duration: 10,
       },
     },
-    { type: 'RequiresTarget', properties: { acquired: 'MANUAL' } },
+    {
+      type: 'RequiresTarget',
+      properties: {
+        acquired: 'MANUAL',
+      },
+    },
   ],
 };
 
@@ -201,20 +317,30 @@ export const ScrollFireball = {
   components: [
     {
       type: 'Appearance',
-      properties: { char: '♪', color: '#DAA520' },
+      properties: {
+        char: '♪',
+        color: '#DAA520',
+      },
     },
     {
       type: 'Description',
-      properties: { name: 'scroll of fireball' },
+      properties: {
+        name: 'scroll of fireball',
+      },
     },
     {
       type: 'Effects',
       properties: {
-        animate: { color: '#FFA200', char: '^' },
+        animate: {
+          color: '#FFA200',
+          char: '^',
+        },
         events: [
           {
             name: 'take-damage',
-            args: { amount: 25 },
+            args: {
+              amount: 25,
+            },
           },
         ],
       },

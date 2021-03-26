@@ -1,4 +1,4 @@
-import { distance, idToCell } from "./grid";
+import { distance, idToCell } from './grid';
 
 const octantTransforms = [
   { xx: 1, xy: 0, yx: 0, yy: 1 },
@@ -19,21 +19,24 @@ export default function createFOV(
   height,
   originX,
   originY,
+  originZ,
   radius
 ) {
   const visible = new Set();
 
   const blockingLocations = new Set();
-  opaqueEntities
-    .get()
-    .forEach((x) => blockingLocations.add(`${x.position.x},${x.position.y}`));
+  opaqueEntities.get().forEach((x) => {
+    if (x.position.z === originZ) {
+      blockingLocations.add(`${x.position.x},${x.position.y},${x.position.z}`);
+    }
+  });
 
   const isOpaque = (x, y) => {
-    const locId = `${x},${y}`;
+    const locId = `${x},${y},${originZ}`;
     return !!blockingLocations.has(locId);
   };
   const reveal = (x, y) => {
-    return visible.add(`${x},${y}`);
+    return visible.add(`${x},${y},${originZ}`);
   };
 
   function castShadows(originX, originY, row, start, end, transform, radius) {

@@ -37,6 +37,8 @@ import {
   ScrollFireball,
   ScrollLightning,
   ScrollParalyze,
+  StairsDown,
+  StairsUp,
   Tile,
   Wall,
 } from './prefabs';
@@ -85,6 +87,8 @@ ecs.registerPrefab(Player);
 ecs.registerPrefab(ScrollFireball);
 ecs.registerPrefab(ScrollLightning);
 ecs.registerPrefab(ScrollParalyze);
+ecs.registerPrefab(StairsDown);
+ecs.registerPrefab(StairsUp);
 ecs.registerPrefab(Wall);
 
 const world = ecs.createWorld();

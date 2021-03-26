@@ -1,2 +1,3 @@
-export const toCamelCase = (string) =>
-  string[0].toUpperCase() + string.slice(1);
+export const toCamelCase = (string) => {
+  return string[0].toLowerCase() + string.slice(1);
+};

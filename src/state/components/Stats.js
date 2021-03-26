@@ -13,7 +13,6 @@ export class Health extends Component {
     this.current -= evt.data.amount;
 
     if (this.current <= 0) {
-      this.entity.appearance.char = '%';
       if (this.entity.has(Ai)) {
         this.entity.remove(this.entity.ai);
       }
@@ -25,6 +24,7 @@ export class Health extends Component {
         this.entity.remove(this.entity.layer400);
       }
       this.entity.add(Layer300);
+      this.entity.appearance.char = '%';
     }
     evt.handle();
   }
