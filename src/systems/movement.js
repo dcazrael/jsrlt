@@ -1,7 +1,8 @@
+import { addLog } from '..';
 import { grid } from '../lib/canvas';
 import { addCacheSet, deleteCacheSet, readCacheSet } from '../state/cache';
 import { Defense, Health, Move, Paralyzed } from '../state/components/';
-import world, { addLog } from '../state/ecs';
+import world from '../state/ecs';
 
 const movableEntities = world.createQuery({
   all: [Move],

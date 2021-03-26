@@ -3,7 +3,12 @@ import './lib/canvas';
 import { grid, pxToCell } from './lib/canvas';
 import { createDungeon } from './lib/dungeon';
 import { circle, toLocId } from './lib/grid';
-import { readCacheSet } from './state/cache';
+import {
+  clearCache,
+  deserializeCache,
+  readCacheSet,
+  serializeCache,
+} from './state/cache';
 import {
   ActiveEffects,
   Ai,
@@ -14,7 +19,7 @@ import {
   Target,
   TargetingItem,
 } from './state/components/';
-import world, { addLog } from './state/ecs';
+import world from './state/ecs';
 import { ai } from './systems/ai';
 import { animation } from './systems/animation';
 import { effects } from './systems/effects';
@@ -23,64 +28,92 @@ import { movement } from './systems/movement';
 import { render } from './systems/render';
 import { targeting } from './systems/targeting';
 
+export let messageLog = ['', "Welcome to Gobs 'O Goblins!", ''];
+export const addLog = (text) => {
+  messageLog.unshift(text);
+};
+
 const enemiesInFOV = world.createQuery({ all: [IsInFov, Ai] });
-//init game map and player position
-const dungeon = createDungeon({
-  x: grid.map.x,
-  y: grid.map.y,
-  width: grid.map.width,
-  height: grid.map.height,
-});
 
-const player = world.createPrefab('Player');
-player.add(Position, {
-  x: dungeon.rooms[0].center.x,
-  y: dungeon.rooms[0].center.y,
-});
+const initGame = () => {
+  //init game map and player position
+  const dungeon = createDungeon({
+    x: grid.map.x,
+    y: grid.map.y,
+    width: grid.map.width,
+    height: grid.map.height,
+  });
 
-const openTiles = Object.values(dungeon.tiles).filter(
-  (x) => x.sprite === 'FLOOR'
-);
+  player = world.createPrefab('Player');
+  player.add(Position, {
+    x: dungeon.rooms[0].center.x,
+    y: dungeon.rooms[0].center.y,
+  });
 
-times(10, () => {
-  const tile = sample(openTiles);
+  const openTiles = Object.values(dungeon.tiles).filter(
+    (x) => x.sprite === 'FLOOR'
+  );
 
-  world.createPrefab('Goblin').add(Position, { x: tile.x, y: tile.y });
-});
+  times(10, () => {
+    const tile = sample(openTiles);
 
-times(0, () => {
-  const tile = sample(openTiles);
-  world.createPrefab('HealthPotion').add(Position, { x: tile.x, y: tile.y });
-});
+    world.createPrefab('Goblin').add(Position, { x: tile.x, y: tile.y });
+  });
 
-times(0, () => {
-  const tile = sample(openTiles);
-  world.createPrefab('ScrollLightning').add(Position, { x: tile.x, y: tile.y });
-});
-times(0, () => {
-  const tile = sample(openTiles);
-  world.createPrefab('ScrollParalyze').add(Position, { x: tile.x, y: tile.y });
-});
+  times(0, () => {
+    const tile = sample(openTiles);
+    world.createPrefab('HealthPotion').add(Position, { x: tile.x, y: tile.y });
+  });
 
-times(50, () => {
-  const tile = sample(openTiles);
-  world.createPrefab('ScrollFireball').add(Position, { x: tile.x, y: tile.y });
-});
+  times(0, () => {
+    const tile = sample(openTiles);
+    world
+      .createPrefab('ScrollLightning')
+      .add(Position, { x: tile.x, y: tile.y });
+  });
+  times(0, () => {
+    const tile = sample(openTiles);
+    world
+      .createPrefab('ScrollParalyze')
+      .add(Position, { x: tile.x, y: tile.y });
+  });
 
-fov(player);
-render(player);
+  times(50, () => {
+    const tile = sample(openTiles);
+    world
+      .createPrefab('ScrollFireball')
+      .add(Position, { x: tile.x, y: tile.y });
+  });
 
+  fov(player);
+  render(player);
+};
+let player = {};
 let userInput = null;
 let playerTurn = true;
 export let gameState = 'GAME';
 export let targetRange = 1;
 export let selectedInventoryIndex = 0;
 
+initGame();
+
 document.addEventListener('keydown', (ev) => {
   userInput = ev.key;
 });
 
 const processUserInput = () => {
+  if (userInput === 'l') {
+    loadGame();
+  }
+
+  if (userInput === 'n') {
+    newGame();
+  }
+
+  if (userInput === 's') {
+    saveGame();
+  }
+
   if (gameState === 'GAME') {
     if (userInput === 'ArrowUp') {
       player.add(Move, { x: 0, y: -1 });
@@ -194,6 +227,12 @@ const update = () => {
   animation();
 
   if (player.isDead) {
+    if (gameState !== 'GAMEOVER') {
+      addLog('You are dead.');
+      render(player);
+    }
+    gameState = 'GAMEOVER';
+    processUserInput();
     return;
   }
 
@@ -274,4 +313,58 @@ canvas.onclick = (e) => {
       render(player);
     }
   });
+};
+
+const saveGame = () => {
+  const gameSaveData = {
+    world: world.serialize(),
+    cache: serializeCache(),
+    playerId: player.id,
+    messageLog,
+  };
+
+  localStorage.setItem('gameSaveData', JSON.stringify(gameSaveData));
+  addLog('Game saved');
+};
+
+const loadGame = () => {
+  const data = JSON.parse(localStorage.getItem('gameSaveData'));
+  if (!data) {
+    addLog('Failed to load = no saved games found');
+    return;
+  }
+
+  for (let entity of world.getEntities()) {
+    entity.destroy();
+  }
+
+  world.deserialize(data.world);
+  deserializeCache(data.cache);
+
+  player = world.getEntity(data.playerId);
+
+  userInput = null;
+  playerTurn = true;
+  gameState = 'GAME';
+  selectedInventoryIndex = 0;
+
+  messageLog = data.messageLog;
+  addLog('Game loaded');
+};
+
+const newGame = () => {
+  for (let item of world.getEntities()) {
+    item.destroy();
+  }
+
+  clearCache();
+
+  userInput = null;
+  playerTurn = true;
+  gameState = 'GAME';
+  selectedInventoryIndex = 0;
+
+  messageLog = ['', "Welcome to Gobs 'O Goblins!", ''];
+
+  initGame();
 };

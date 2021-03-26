@@ -87,10 +87,5 @@ ecs.registerPrefab(ScrollLightning);
 ecs.registerPrefab(ScrollParalyze);
 ecs.registerPrefab(Wall);
 
-export const messageLog = ['', "Welcome to Gobs 'O Goblins!", ''];
-export const addLog = (text) => {
-  messageLog.unshift(text);
-};
-
 const world = ecs.createWorld();
 export default world;

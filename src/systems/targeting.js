@@ -1,3 +1,4 @@
+import { addLog } from '..';
 import { readCacheSet } from '../state/cache';
 import {
   ActiveEffects,
@@ -5,7 +6,7 @@ import {
   Target,
   TargetingItem,
 } from '../state/components/';
-import world, { addLog } from '../state/ecs';
+import world from '../state/ecs';
 
 const targetingEntities = world.createQuery({
   all: [Target, TargetingItem],

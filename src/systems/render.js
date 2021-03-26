@@ -1,5 +1,5 @@
 import { throttle } from 'lodash';
-import { gameState, selectedInventoryIndex, targetRange } from '..';
+import { gameState, messageLog, selectedInventoryIndex, targetRange } from '..';
 import {
   clearCanvas,
   drawCell,
@@ -20,7 +20,7 @@ import {
   Layer400,
   Position,
 } from '../state/components/';
-import world, { messageLog } from '../state/ecs';
+import world from '../state/ecs';
 
 const layer100Entities = world.createQuery({
   all: [Position, Appearance, Layer100],
@@ -280,10 +280,21 @@ const renderTargeting = (mPos) => {
   }
 };
 
+const renderMenu = () => {
+  drawText({
+    text: `(n)New (s)Save (l)Load | (i)Inventory (g)Pickup (arrow keys)Move/Attack (mouse)Look/Target`,
+    background: '#000',
+    color: '#666',
+    x: grid.menu.x,
+    y: grid.menu.y,
+  });
+};
+
 export const render = (player) => {
   renderMap();
   renderPlayerHud(player);
   renderMessageLog();
+  renderMenu();
 
   if (gameState === 'INVENTORY') {
     renderInventory(player);
